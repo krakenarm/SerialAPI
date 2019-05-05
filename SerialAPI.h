@@ -42,6 +42,7 @@ class SerialAPI
         void answerProtocolExchange();
         bool isProtocolVersionSupported(byte v);
         static void convertToByteParam(byte b, ByteParam byteParam);
+        static byte convertFromByteParam(ByteParam byteParam);
         void addParam(byte b, byte nth);
         void addParams(byte* params, byte nParams);
         byte countParams();

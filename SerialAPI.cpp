@@ -6,7 +6,7 @@ SerialAPI::SerialAPI(byte protocolV) {
     waitingForInput = false;
 }
 SerialAPI::SerialAPI() {
-    SerialAPI(0);
+    SerialAPI(1);
 }
 
 void SerialAPI::addParam(byte b, byte nth) {
@@ -36,29 +36,78 @@ byte SerialAPI::countParams() {
     return counter;
 }
 void SerialAPI::readByteParam(byte nth, ByteParam byteParam) {
-
+    byte start = COMMAND_LENGTH+1+(nth * (BYTE_PARAM_LENGTH+1));
+    for(byte i=0; i<BYTE_PARAM_LENGTH; i++) {
+        byteParam[i] = input[start+i];
+    }
 }
 void SerialAPI::readParams(byte *params, byte nParams) {
     byte i;
     for ( i=0; i<nParams; i++) {
         ByteParam byteParam;
-
+        readByteParam(i, byteParam);
+        params[i] = convertFromByteParam(byteParam);
     }
 }
 bool SerialAPI::tryProtocolExchange() {
-
+    setCommand(COM_PROTOCOL_VERSION);
+    addParam(protocolVersion, 0);
+    send();
+    waitForCommand();
+    Command com;
+    readCommand(com);
+    if (commandEquals(com, COM_PROTOCOL_VERSION)) {
+        byte nParams = countParams();
+        if (nParams>0) {
+            byte params[nParams];
+            readParams(params, nParams);
+            return isProtocolVersionSupported(params[0]);
+        }
+    }
+    return false;
 }
 bool SerialAPI::isProtocolVersionSupported(byte v) {
     return (v<1);
 }
-void SerialAPI::convertToByteParam(byte b, ByteParam byteParam) {
+byte SerialAPI::convertFromByteParam(ByteParam byteParam) {
+    byte output = 0;
     byte v;
-    for (byte i = 0; i < 3; ++i) {
-        //TODO: finish
+    byte asciiZero = 48;
+    byte factor=1;
+    byte bytes[BYTE_PARAM_LENGTH];
+    byte value;
+    for (byte i=0; i<BYTE_PARAM_LENGTH; i++) {
+        if (i>0)
+            factor = factor *10;
+        v= byteParam[BYTE_PARAM_LENGTH-i-1];
+        Serial.print("i= ");Serial.print(i);
+        Serial.print(" factor= ");Serial.print(factor);
+        Serial.print(" (char)v= ");Serial.print((char)v);
+        Serial.print(" (byte)v= ");Serial.println(v);
+        value = v-asciiZero;
+        value = value *factor;
+        output = output + value;
+    }
+    return output;
+
+}
+void SerialAPI::convertToByteParam(byte b, ByteParam byteParam) {
+    // dec 48=0; dec 49=1; ...
+    byte v;
+    byte asciiZero = 48;
+    byte factor=100;
+    for (byte i=0; i<BYTE_PARAM_LENGTH;i++) {
+        if (i>0)
+            factor = (byte)round((double)factor/10.0);
+        v = (byte) floor((double)b /(double)factor);
+        byteParam[i] = asciiZero + v;
+        b=b-(v*factor);
     }
 }
 void SerialAPI::answerProtocolExchange() {
-
+    setCommand(COM_PROTOCOL_VERSION);
+    addParam(protocolVersion, 0);
+    send();
 }
 void SerialAPI::send() {
     waitingForInput=false;
