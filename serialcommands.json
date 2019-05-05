@@ -1,0 +1,34 @@
+{
+    "commands": {
+        "Block": {
+            "description": "4x 1 $byte of data. Block number $blockNo",
+            "format": "BL$blockNo:$byte0,$byte1,$byte2,$byte3\n",
+            "return": null
+        },
+        "readBlocks": {
+            "format": "rb$blockNo\n",
+            "description": "Reads 4 blocks, starting at $blockNo",
+            "return": "BL$blockNo0:1,2,3,4\nBL$blockNo1:5,6,7,8\nBL$blockNo2:9,10,11,12\nBL$blockNo3:13,14,15,16"
+        },
+        "writeBlock": {
+            "description": "Writes a Block of 4x 1 $byte data in block number $blockNo",
+            "format": "wb$blockNo:BL$byte0,$byte1,$byte2,byte3\n",
+            "return": "ok"
+        },
+        "readAll": {
+            "description": "Reads a the whole chip and delivers the blocks in ",
+            "format": "ra\n",
+            "return": "BL$blockNo0:1,2,3,4\nBL$blockNo1:1,2,3,4\n ... ",
+        },
+        "orderRecieved": {
+            "description": "When a serial handler recieves an void order, it return an oderRecieved",
+            "format": "ok\n",
+            "return": "ok\n"
+        },
+        "end": {
+            "description": "tells the client that all orders are finished.",
+            "format": "en\n",
+            "return": "en\n"
+        }
+    }
+}
