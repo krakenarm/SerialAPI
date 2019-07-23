@@ -205,10 +205,13 @@ byte SerialAPI::getStringLength(byte* buffer, byte size) {
     }
     return size;
 }
-void SerialAPI::setup() {
-    Serial.println(COMMANDS[COM_HI]);
-}
 
+void SerialAPI::answerOK() {
+    sendCommand(COM_OK);
+}
+void SerialAPI::recieveCommandsUntilBye() {
+    // TODO: finish
+}
 void SerialAPI::readCommand(char *buffer, byte bufferLength, char *commandBuffer) {
     for (byte i = 0; i < COMMAND_LENGTH; ++i) {
         commandBuffer[i] = buffer[i];
@@ -280,6 +283,9 @@ byte SerialAPI::readSerialTag(char *buffer, byte bufferSize) {
     }
     return SerialAPI::getStringLength(buffer, bufferSize);
 }
+int SerialAPI::callIntInt(FunctionPointerIntInt *functionsArray, byte index, int param) {
+    return functionsArray[index](param);
+}
 void SerialAPI::dumpBuffers() {
     Serial.print("input: ");Serial.println(input);
     Serial.print("output: ");Serial.println(output);
@@ -297,25 +303,6 @@ void SerialAPI::waitForCommand(char* buffer, byte length) {
     }
 }
 
-void SerialAPI::check(char *buffer, byte length) {
-    if (isCommand(buffer, length)) {
-        Serial.println("command found");
-        Command com;
-        readCommand(buffer, length, com);
-        if (commandEquals(com, COM_HI)) {
-            Serial.println("says HI!");
-            char output[64];
-            createCommand(output, COM_HI);
-            send(output);
-            char input[64];
-            waitForCommand(input, 64);
-            Serial.print("recieved answere: "); Serial.println(input);
-        }
-        else if (commandEquals(com, COM_BYE)) {
-            Serial.println("says BYE!");
-        }
-    }
-}
 void SerialAPI::clearBuffer(char *buffer, byte size) {
     for (byte i = 0; i < size; ++i) {
         buffer[i] = '\0';

@@ -8,72 +8,111 @@ class SerialAPI
 {
     public:
 
+    // constructors
         SerialAPI(byte protocolV);
         SerialAPI();
-        typedef char Command[2];
-        typedef char ByteParam[3];
 
-        void dumpBuffers();
+    // typedefs
+
+        typedef int (* FunctionPointerIntInt)(int);
+        typedef char Command[2];
+        static byte COMMAND_LENGTH;
+
+        typedef char ByteParam[3];
+        static byte BYTE_PARAM_LENGTH;
+
+
+    // static
+        // read/write
         static byte readSerialTag(char* buffer, byte bufferSize);
-        static void readCommand(char* buffer, byte bufferLength, Command commandBuffer);
-        void readCommand(Command commandBuffer);
+        static void send(char* buffer);
+
+        // Command
         static bool isCommand(char* buffer, byte length);
-        static void waitForCommand(char* buffer, byte length);
-        void waitForCommand();
-        bool tryHandShake();
-        void answerHandShake();
-        bool tryGoodBye();
-        void answerGoodBye();
-        void resetBuffers(bool clearInput, bool clearOutput);
-        bool listen();
         static bool commandEquals(Command com1, Command com2);
         static bool commandEquals(Command com, byte com_ID);
-        static void clearBuffer(char* buffer, byte size);
-        static void check(char* buffer, byte length);
+        static void readCommand(char* buffer, byte bufferLength, Command commandBuffer);
+        static void waitForCommand(char* buffer, byte length);
         static void setCommand(Command com, byte com_ID);
-        void setCommand(byte com_ID);
         static void createCommand(char* buffer, byte com_ID);
-        static void send(char* buffer);
-        void send();
+
+        // variables
+        static byte COM_PROTOCOL_VERSION;
+
         static char TAG_START;
         static char TAG_END;
-        void sendCommand(byte com_ID);
-        bool tryProtocolExchange();
-        void answerProtocolExchange();
-        bool isProtocolVersionSupported(byte v);
+
+        static char COMMAND_PARAM_SEPARATOR;
+        static char COMMAND_END_MARKER;
+
+        static Command COMMANDS[10];
+        static byte COM_HI;
+        static byte COM_BYE;
+        static byte COM_OK;
+
+    //helpers
+        static void clearBuffer(char* buffer, byte size);
         static void convertToByteParam(byte b, ByteParam byteParam);
         static byte convertFromByteParam(ByteParam byteParam);
+
+    // Instance
+        // Commands
+        void readCommand(Command commandBuffer);
+        void setCommand(byte com_ID);
+        void waitForCommand();
         void addParam(byte b, byte nth);
         void addParams(byte* params, byte nParams);
         byte countParams();
         void readParams(byte* params, byte nParams);
         void readByteParam(byte nth, ByteParam byteParam);
-        static char COMMAND_PARAM_SEPARATOR;
-        static byte COMMAND_LENGTH;
-        static char COMMAND_END_MARKER;
-        static byte BYTE_PARAM_LENGTH;
-
-        static byte COM_HI;
-        static byte COM_BYE;
-        static byte COM_OK;
-        static byte COM_PROTOCOL_VERSION;
 
 
-        static Command COMMANDS[10];
+        // communication
+        bool listen();
+        void send();
+        void sendCommand(byte com_ID);
 
-        static void setup();
+        bool tryHandShake();
+        void answerHandShake();
 
+        bool tryGoodBye();
+        void answerGoodBye();
 
-protected:
+        bool tryProtocolExchange();
+        void answerProtocolExchange();
+
+        void answerOK();
+
+        void recieveCommandsUntilBye();
+
+        // helpers
+        void resetBuffers(bool clearInput, bool clearOutput);
+        void dumpBuffers();
+        bool isProtocolVersionSupported(byte v);
+
+        int callIntInt(FunctionPointerIntInt* functionsArray, byte index, int param);
+    protected:
+
+    // static
+        // variables
         static const byte BUFFER_SIZE;
 
+    // Instance
+        // variables
         bool waitingForInput;
         byte protocolVersion;
 
     private:
-        char input[32];
-        char output[32];
+
+    // static
+        // helpers
         static byte getStringLength(byte* buffer, byte size);
+
+    // Instance
+
+        // variables
+        char input[32];     // length should match BUFFER_SIZE
+        char output[32];    // length should match BUFFER_SIZE
 };
 
 #endif
